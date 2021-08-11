@@ -32,7 +32,7 @@ print("Files in %r: %s" % (cwd, files))
 dataFile = open(f"{_thisDir}/csv/{fileName}.csv", 'w')  # a simple text file with
 # 'comma-separated-values'
 #dataFile.write('no_trial, id_candidate, digit, SOA, seen, gte_5, correct, practice, reaction_time, time_stamp\n')  # TODO : À remettre si on remet l'entraînement
-dataFile.write('no_trial, id_candidate, digit, SOA, seen, gte_5, correct, time_stamp\n')
+dataFile.write('no_trial, id_candidate, digit, SOA, seen, gte_5, correct, time_stamp, start_value\n')
 
 
 class SubliminalPrimingTask:
@@ -40,13 +40,13 @@ class SubliminalPrimingTask:
     def __init__(self):
         self.yes_key_code = "o"  # TODO: Temporaire, à modifier quand on passera sur le pad
         self.no_key_code = "n"  # TODO: Pareil
-        self.yes_no_code = [self.yes_key_code, self.no_key_code]
+        self.keys = [self.yes_key_code, self.no_key_code, "q"]
         self.yes_key_name = "bleu"  # TODO: Voir si c'est la bonne couleur
         self.no_key_name = "vert"  # TODO: Pareil
         self.target_time = 0.5  # TODO: Je sais pas combien de temps la croix reste dans l'expérience originale, donc je mets cette variable
-        self.times_before_masking = [0.017, 0.033, 0.050, 0.083, 0.100]  # TODO: Je n'ai pas trouvé les valeurs exactes dans l'article de Berkovitch
-        self.times_before_masking_last_index = 4  # TODO: À voir selon  les modifs de la variable ci-dessus
+        self.times_before_masking = [0.017, 0.033, 0.050, 0.067, 0.083, 0.100, 0.117, 0.133]  # TODO: Je n'ai pas trouvé les valeurs exactes dans l'article de Berkovitch
         self.trials = 18
+        self.starting_SOA_index = 0 if randint(0, 1) else len(self.times_before_masking) - 1
 
     def run(self):
         positions = [(-0.25, -0.25), (-0.25, 0.25), (0.25, -0.25), (0.25, 0.25)]
@@ -56,7 +56,6 @@ class SubliminalPrimingTask:
             [(0.30, -0.25), (0.25, -0.20), (0.20, -0.25), (0.25, -0.30)],
             [(0.30, 0.25), (0.25, 0.20), (0.20, 0.25), (0.25, 0.30)],
         ]
-        score = 0
 
         # We create an empty window
         win = visual.Window(
@@ -504,6 +503,8 @@ class SubliminalPrimingTask:
         win.flip()
         core.wait(2)
 
+        soa = self.starting_SOA_index
+
         for i in range(self.trials):
             rnd = randint(0, 3)
             digit = randint(0, 9)
@@ -511,7 +512,7 @@ class SubliminalPrimingTask:
             croix.draw()
             win.flip()
             core.wait(self.target_time)
-            digit = visual.TextStim(
+            digit_print = visual.TextStim(
                 win=win,
                 name='digit',
                 text=digit,
@@ -526,12 +527,13 @@ class SubliminalPrimingTask:
                 opacity=1,
                 languageStyle='LTR',
                 depth=0.0)
-            digit.draw()
+            digit_print.draw()
             croix.draw()
             win.flip()
             core.wait(0.017)
             croix.draw()
-            core.wait(self.times_before_masking[self.times_before_masking_last_index])
+            win.flip()
+            core.wait(self.times_before_masking[soa])
             mask = [visual.TextStim(
                 win=win,
                 name='digit',
@@ -597,8 +599,13 @@ class SubliminalPrimingTask:
                     good_answer = True
                 else:
                     good_answer = False
-            dataFile.write(f"{i}, {expInfo['participant']}, {digit}, {self.times_before_masking_last_index}, "
-                           f"{seen}, {digit_gte_5}, {good_answer}, {time.time()}")
+            dataFile.write(f"{i}, {expInfo['participant']}, {digit}, {self.times_before_masking[soa]}, "
+                           f"{seen}, {digit_gte_5}, {good_answer}, {time.time()}, "
+                           f"{self.times_before_masking[self.starting_SOA_index]}\n")
+            if good_answer and soa != 0:
+                soa -= 1
+            elif not good_answer and soa != len(self.times_before_masking) - 1:
+                soa += 1
             silence.draw()
             win.flip()
             rnd_time = randint(8, 14)
@@ -620,7 +627,7 @@ class SubliminalPrimingTask:
         Returns the pressed key and the reaction time.
         """
         if keys is None:
-            keys = self.yes_no_code
+            keys = self.keys
         resp = event.waitKeys(keyList=keys, clearEvents=True)
         if resp[0] == "q":
             self.quit_experiment()

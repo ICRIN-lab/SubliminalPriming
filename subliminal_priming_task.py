@@ -26,13 +26,11 @@ else:
 
 # make a text file to save data
 fileName = expInfo['participant'] + '_' + expInfo['date']
-cwd = os.getcwd()  # Get the current working directory (cwd)
-files = os.listdir(cwd)  # Get all the files in that directory
-print("Files in %r: %s" % (cwd, files))
-dataFile = open(f"{_thisDir}/csv/{fileName}.csv", 'w')  # a simple text file with
-# 'comma-separated-values'
+if not os.path.isdir("csv"):
+    os.mkdir("csv")
+dataFile = open(f"{_thisDir}/csv/{fileName}.csv", 'w')
 #dataFile.write('no_trial, id_candidate, digit, SOA, seen, gte_5, correct, practice, reaction_time, time_stamp\n')  # TODO : À remettre si on remet l'entraînement
-dataFile.write('no_trial, id_candidate, digit, SOA, seen, gte_5, correct, time_stamp, start_value\n')
+dataFile.write('no_trial, id_candidate, digit, SOA, seen, gte_5, correct, time_stamp, start_SOA\n')
 
 
 class SubliminalPrimingTask:
@@ -45,7 +43,7 @@ class SubliminalPrimingTask:
         self.no_key_name = "vert"  # TODO: Pareil
         self.target_time = 0.5  # TODO: Je sais pas combien de temps la croix reste dans l'expérience originale, donc je mets cette variable
         self.times_before_masking = [0.017, 0.033, 0.050, 0.067, 0.083, 0.100, 0.117, 0.133]  # TODO: Je n'ai pas trouvé les valeurs exactes dans l'article de Berkovitch
-        self.trials = 18
+        self.trials = 150
         self.starting_SOA_index = 0 if randint(0, 1) else len(self.times_before_masking) - 1
 
     def run(self):
@@ -311,6 +309,7 @@ class SubliminalPrimingTask:
         instr2.draw()
         win.flip()
         core.wait(5)
+        # TODO: À décommenter si on met un entraînement
         # exemple.draw()
         # win.flip()
         # core.wait(3)

@@ -40,12 +40,9 @@ class SubliminalPrimingTask:
     def __init__(self):
         self.yes_key_code = "o"  # TODO: Temporaire, à modifier quand on passera sur le pad
         self.no_key_code = "n"  # TODO: Pareil
-        self.colors_code = ["r", "g", "b"]  # TODO: Pareil
         self.yes_no_code = [self.yes_key_code, self.no_key_code]
-        self.keys = [*self.yes_no_code, *self.colors_code]
         self.yes_key_name = "bleu"  # TODO: Voir si c'est la bonne couleur
         self.no_key_name = "vert"  # TODO: Pareil
-        self.colors = ["rouge", "vert", "bleu"]  # TODO: Pareil
         self.target_time = 0.5  # TODO: Je sais pas combien de temps la croix reste dans l'expérience originale, donc je mets cette variable
         self.times_before_masking = [0.017, 0.033, 0.050, 0.083, 0.100]  # TODO: Je n'ai pas trouvé les valeurs exactes dans l'article de Berkovitch
         self.times_before_masking_last_index = 4  # TODO: À voir selon  les modifs de la variable ci-dessus
@@ -573,7 +570,7 @@ class SubliminalPrimingTask:
                 depth=0.0
             ).draw()
             win.flip()
-            resp = self.get_response(self.yes_no_code)
+            resp = self.get_response()
             if resp == self.yes_key_code:
                 visual.TextStim(
                     win=win,
@@ -654,7 +651,7 @@ class SubliminalPrimingTask:
         Returns the pressed key and the reaction time.
         """
         if keys is None:
-            keys = self.keys
+            keys = self.yes_no_code
         resp = event.waitKeys(keyList=keys, clearEvents=True)
         if resp[0] == "q":
             self.quit_experiment()

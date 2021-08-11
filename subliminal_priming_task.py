@@ -41,7 +41,8 @@ class SubliminalPrimingTask:
         self.yes_key_code = "o"  # TODO: Temporaire, à modifier quand on passera sur le pad
         self.no_key_code = "n"  # TODO: Pareil
         self.colors_code = ["r", "g", "b"]  # TODO: Pareil
-        self.keys = [self.yes_key_code, self.no_key_code, *self.colors_code]
+        self.yes_no_code = [self.yes_key_code, self.no_key_code]
+        self.keys = [*self.yes_no_code, *self.colors_code]
         self.yes_key_name = "bleu"  # TODO: Voir si c'est la bonne couleur
         self.no_key_name = "vert"  # TODO: Pareil
         self.colors = ["rouge", "vert", "bleu"]  # TODO: Pareil
@@ -507,8 +508,9 @@ class SubliminalPrimingTask:
         core.wait(2)
 
         for i in range(self.trials):
-            rnd = randint(0,3)
+            rnd = randint(0, 3)
             digit = randint(0, 9)
+            digit_gte_5 = digit > 5
             croix.draw()
             win.flip()
             core.wait(self.target_time)
@@ -547,20 +549,50 @@ class SubliminalPrimingTask:
                 colorSpace='rgb',
                 opacity=1,
                 languageStyle='LTR',
-                depth=0.0) for n_letter in range(4)]
+                depth=0.0
+            ) for n_letter in range(4)]
             for letter in mask:
                 letter.draw()
             croix.draw()
             win.flip()
             core.wait(0.2)
-            resp = self.get_response()
-            if resp == good_ans:
-                score = score + 1
-                good_answer = True
-            elif resp != good_ans:
-                good_answer = False
+            visual.TextStim(
+                win=win,
+                name="subjective_ask",
+                text="Avez-vous vu le chiffre ?",
+                font="Arial",
+                units="height",
+                pos=(0, 0),
+                height=0.06,
+                wrapWidth=None,
+                ori=0,
+                color="white",
+                colorSpace="rgb",
+                opacity=1,
+                languageStyle="LTR",
+                depth=0.0
+            ).draw()
+            win.flip()
+            resp = self.get_response(self.yes_no_code)
+            if resp == self.yes_key_code:
+                visual.TextStim(
+                    win=win,
+                    name="objective_ask",
+                    text="Est-ce que le chiffre est plus grand (ou égal) à 5 ?",  # TODO: À voir si c'est la bonne condition
+                    font="Arial",
+                    units="height",
+                    pos=(0, 0),
+                    height=0.06,
+                    wrapWidth=None,
+                    ori=0,
+                    color="white",
+                    colorSpace="rgb",
+                    opacity=1,
+                    languageStyle="LTR",
+                    depth=0.0
+                ).draw()
             else:
-                good_answer = None
+                good_answer = False
             dataFile.write(
                 str(i)
                 +
@@ -616,12 +648,14 @@ class SubliminalPrimingTask:
     def quit_experiment():
         exit()
 
-    def get_response(self):
+    def get_response(self, keys=None):
         """Waits for a response from the participant.
         Pressing Q while the function is wait for a response will quit the experiment.
         Returns the pressed key and the reaction time.
         """
-        resp = event.waitKeys(keyList=self.keys, clearEvents=True)
+        if keys is None:
+            keys = self.keys
+        resp = event.waitKeys(keyList=keys, clearEvents=True)
         if resp[0] == "q":
             self.quit_experiment()
         return resp[0]

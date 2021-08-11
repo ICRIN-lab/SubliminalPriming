@@ -571,6 +571,7 @@ class SubliminalPrimingTask:
             ).draw()
             win.flip()
             resp = self.get_response()
+            good_answer = False
             if resp == self.yes_key_code:
                 visual.TextStim(
                     win=win,
@@ -588,8 +589,10 @@ class SubliminalPrimingTask:
                     languageStyle="LTR",
                     depth=0.0
                 ).draw()
-            else:
-                good_answer = False
+                win.flip()
+                resp = self.get_response()
+                if (resp == self.yes_key_code and digit_gte_5) or (resp == self.no_key_code and not digit_gte_5):
+                    good_answer = True
             dataFile.write(
                 str(i)
                 +

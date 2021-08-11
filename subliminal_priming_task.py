@@ -31,8 +31,8 @@ files = os.listdir(cwd)  # Get all the files in that directory
 print("Files in %r: %s" % (cwd, files))
 dataFile = open(f"{_thisDir}/csv/{fileName}.csv", 'w')  # a simple text file with
 # 'comma-separated-values'
-dataFile.write('no_trial, id_candidate, visual, condition, ans_candidate, good_ans, correct, '
-               'practice, reaction_time, time_stamp\n')
+#dataFile.write('no_trial, id_candidate, digit, SOA, seen, gte_5, correct, practice, reaction_time, time_stamp\n')  # TODO : À remettre si on remet l'entraînement
+dataFile.write('no_trial, id_candidate, digit, SOA, seen, gte_5, correct, time_stamp\n')
 
 
 class SubliminalPrimingTask:

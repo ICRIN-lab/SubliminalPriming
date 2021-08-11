@@ -571,8 +571,10 @@ class SubliminalPrimingTask:
             ).draw()
             win.flip()
             resp = self.get_response()
-            good_answer = False
+            good_answer = None
+            seen = False
             if resp == self.yes_key_code:
+                seen = True
                 visual.TextStim(
                     win=win,
                     name="objective_ask",
@@ -593,46 +595,10 @@ class SubliminalPrimingTask:
                 resp = self.get_response()
                 if (resp == self.yes_key_code and digit_gte_5) or (resp == self.no_key_code and not digit_gte_5):
                     good_answer = True
-            dataFile.write(
-                str(i)
-                +
-                ','
-                +
-                expInfo['participant']
-                +
-                ','
-                +
-                str(L[rnd])
-                +
-                ','
-                +
-                str(condition)
-                +
-                ','
-                +
-                str(resp)
-                +
-                ','
-                +
-                str(good_ans)
-                +
-                ','
-                +
-                str(good_answer)
-                +
-                ','
-                +
-                'no'
-                +
-                ','
-                +
-                str(round(rt, 2))
-                +
-                ','
-                +
-                str(round(time.time() - start, 2))
-                +
-                '\n')
+                else:
+                    good_answer = False
+            dataFile.write(f"{i}, {expInfo['participant']}, {digit}, {self.times_before_masking_last_index}, "
+                           f"{seen}, {digit_gte_5}, {good_answer}, {time.time()}")
             silence.draw()
             win.flip()
             rnd_time = randint(8, 14)

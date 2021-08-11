@@ -13,11 +13,12 @@ os.chdir(_thisDir)
 
 try:  # try to get a previous parameters file
     expInfo = fromFile('lastParams.pickle')
+
 except:  # if not there then use a default set
     # Store info about the experiment session
-    expName = 'Flanker'  # from the Builder filename that created this script
+    expName = 'Subliminal Priming Task'  # from the Builder filename that created this script
     expInfo = {'participant': '', 'session': '001', 'date': data.getDateStr(), 'expName': expName}
-dlg = gui.DlgFromDict(expInfo, title='Flanker', fixed=['dateStr'])
+dlg = gui.DlgFromDict(expInfo, title='Subliminal Priming Task', fixed=['dateStr'])
 if dlg.OK:
     toFile('lastParams.pickle', expInfo)  # save params to file for next time
 else:
@@ -28,27 +29,36 @@ fileName = expInfo['participant'] + '_' + expInfo['date']
 cwd = os.getcwd()  # Get the current working directory (cwd)
 files = os.listdir(cwd)  # Get all the files in that directory
 print("Files in %r: %s" % (cwd, files))
-dataFile = open('~/PycharmProjects/FlankerTask/Flankercsv/' + str(fileName) + '.csv',
-                'w')  # a simple text file with
+dataFile = open(f"{_thisDir}/csv/{fileName}.csv", 'w')  # a simple text file with
 # 'comma-separated-values'
 dataFile.write('no_trial, id_candidate, visual, condition, ans_candidate, good_ans, correct, '
                'practice, reaction_time, time_stamp\n')
 
-filename = _thisDir + os.sep + u'Flanker/Flankerlog/%s_%s' % (expInfo['participant'], expInfo['date'])
 
-
-class Flanker:
+class SubliminalPrimingTask:
     # create init w/ users data
-    def __init__(self, start):
-        self.start = start
-        self.keys = ['a', 'p']
+    def __init__(self):
+        self.yes_key_code = "o"  # TODO: Temporaire, à modifier quand on passera sur le pad
+        self.no_key_code = "n"  # TODO: Pareil
+        self.colors_code = ["r", "g", "b"]  # TODO: Pareil
+        self.keys = [self.yes_key_code, self.no_key_code, *self.colors_code]
+        self.yes_key_name = "bleu"  # TODO: Voir si c'est la bonne couleur
+        self.no_key_name = "vert"  # TODO: Pareil
+        self.colors = ["rouge", "vert", "bleu"]  # TODO: Pareil
+        self.target_time = 0.5  # TODO: Je sais pas combien de temps la croix reste dans l'expérience originale, donc je mets cette variable
+        self.times_before_masking = [0.017, 0.033, 0.050, 0.083, 0.100]  # TODO: Je n'ai pas trouvé les valeurs exactes dans l'article de Berkovitch
+        self.times_before_masking_last_index = 4  # TODO: À voir selon  les modifs de la variable ci-dessus
+        self.trials = 18
 
     def run(self):
-        global good_answer
-        L = ["<<<<<<<<<", ">>>><>>>>", "<<<<><<<<", ">>>>>>>>"]
-        rnd = 0
+        positions = [(-0.25, -0.25), (-0.25, 0.25), (0.25, -0.25), (0.25, 0.25)]
+        position_masks = [
+            [(-0.30, -0.25), (-0.25, -0.20), (-0.20, -0.25), (-0.25, -0.30)],
+            [(-0.30, 0.25), (-0.25, 0.20), (-0.20, 0.25), (-0.25, 0.30)],
+            [(0.30, -0.25), (0.25, -0.20), (0.20, -0.25), (0.25, -0.30)],
+            [(0.30, 0.25), (0.25, 0.20), (0.20, 0.25), (0.25, 0.30)],
+        ]
         score = 0
-        i = 0
 
         # We create an empty window
         win = visual.Window(
@@ -83,7 +93,26 @@ class Flanker:
         instr = visual.TextStim(
             win=win,
             name='instr',
-            text='Dans ce mini-jeu, appuyez sur "a" si la flèche centrale est en direction de la gauche, \n et sur "p" si elle l\'est vers la droite.',
+            text='Dans ce mini-jeu, un chiffre apparaîtra durant un cours moment à une position aléatoire, puis, '
+                 'après une durée variable, un masque apparaîtra. Vous devrez nous indiquer si vous avez vu le chiffre,'
+                 ' puis choisir le bon chiffre parmi les propositions',
+            font='Arial',
+            units='height',
+            pos=(0, 0),
+            height=0.06,
+            wrapWidth=None,
+            ori=0,
+            color='white',
+            colorSpace='rgb',
+            opacity=1,
+            languageStyle='LTR',
+            depth=0.0)
+        instr2 = visual.TextStim(
+            win=win,
+            name='instr',
+            text=f'Pour répondre oui, il faudra appuyer sur la touche {self.yes_key_name}, et pour répondre non, il '
+                 f'faudra appuyer sur la touche {self.no_key_name}. Pour choisir un chiffre, il faudra appuyer sur la '
+                 f'touche de la même couleur que le carré sous le chiffre',
             font='Arial',
             units='height',
             pos=(0, 0),
@@ -143,7 +172,7 @@ class Flanker:
         pret = visual.TextStim(
             win=win,
             name='prêt',
-            text='Appuyez sur "a" ou "p" lorsque vous vous sentez prêt(e)',
+            text=f'Appuyez sur {self.yes_key_name} lorsque vous vous sentez prêt(e)',
             font='Arial',
             units='height',
             pos=(0, 0),
@@ -200,21 +229,6 @@ class Flanker:
             opacity=1,
             languageStyle='LTR',
             depth=0.0)
-        arrows = visual.TextStim(
-            win=win,
-            name='arrows',
-            text=L[rnd],
-            font='Arial',
-            units='height',
-            pos=(0, 0),
-            height=0.06,
-            wrapWidth=None,
-            ori=0,
-            color='white',
-            colorSpace='rgb',
-            opacity=1,
-            languageStyle='LTR',
-            depth=0.0)
         tutoriel_end = visual.TextStim(
             win=win,
             name='tutoriel',
@@ -233,7 +247,7 @@ class Flanker:
         pret_V2 = visual.TextStim(
             win=win,
             name='pret_V2',
-            text='Appuyez sur "a" ou "p" pour commencer le mini-jeu',
+            text=f'Appuyez sur la touche {self.yes_key_name} pour commencer le mini-jeu',
             font='Arial',
             units='height',
             pos=(0, 0),
@@ -297,169 +311,191 @@ class Flanker:
         instr.draw()
         win.flip()
         core.wait(5)
-        exemple.draw()
-        win.flip()
-        core.wait(3)
-        attention2.draw()
-        win.flip()
-        core.wait(3)
-        doigts.draw()
+        instr2.draw()
         win.flip()
         core.wait(5)
-        pret.draw()
-        win.flip()
-        event.waitKeys(keyList=['a', 'p'], maxWait=10, clearEvents=True)
-        bonne_chance.draw()
-        win.flip()
-        core.wait(2)
+        # exemple.draw()
+        # win.flip()
+        # core.wait(3)
+        # attention2.draw()
+        # win.flip()
+        # core.wait(3)
+        # doigts.draw()
+        # win.flip()
+        # core.wait(5)
+        # pret.draw()
+        # win.flip()
+        # while self.get_response() != self.yes_key_code:
+        #     pass
+        # bonne_chance.draw()
+        # win.flip()
+        # core.wait(2)
 
-        for i in range(3):
-            rnd = randint(0, 3)
-            if (rnd == 0) or (rnd == 1):
-                good_ans = "a"
-            else:
-                good_ans = "p"
-            if (rnd == 0) or (rnd == 3):
-                condition = "Congruent"
-            else:
-                condition = "Incongruent"
-            croix.draw()
-            win.flip()
-            core.wait(0.5)
-            arrows = visual.TextStim(
-                win=win,
-                name='arrows',
-                text=L[rnd],
-                font='Arial',
-                units='height',
-                pos=(0, 0),
-                height=0.06,
-                wrapWidth=None,
-                ori=0,
-                color='white',
-                colorSpace='rgb',
-                opacity=1,
-                languageStyle='LTR',
-                depth=0.0)
-            arrows.draw()
-            win.flip()
-            resp, rt = self.get_response()
-            if resp == good_ans:
-                good_answer = True
-                score = score + 1
-                congrats = visual.TextStim(
-                    win=win,
-                    name='congrats',
-                    text="Bravo ! \n Vous avez " + str(score) + "/" + str(i + 1),
-                    font='Arial',
-                    units='height',
-                    pos=(0, 0),
-                    height=0.06,
-                    wrapWidth=None,
-                    ori=0,
-                    color='white',
-                    colorSpace='rgb',
-                    opacity=1,
-                    languageStyle='LTR',
-                    depth=0.0)
-                congrats.draw()
-                win.flip()
-                core.wait(2)
-            elif resp != good_ans:
-                good_answer = False
-                missed = visual.TextStim(
-                    win=win,
-                    name='missed',
-                    text="Dommage... \n Vous avez " + str(score) + "/" + str(i + 1),
-                    font='Arial',
-                    units='height',
-                    pos=(0, 0),
-                    height=0.06,
-                    wrapWidth=None,
-                    ori=0,
-                    color='white',
-                    colorSpace='rgb',
-                    opacity=1,
-                    languageStyle='LTR',
-                    depth=0.0)
-                missed.draw()
-                win.flip()
-                core.wait(2)
-            else:
-                good_answer = None
-            dataFile.write(
-                str(i)
-                +
-                ','
-                +
-                expInfo['participant']
-                +
-                ','
-                +
-                str(L[rnd])
-                +
-                ','
-                +
-                str(condition)
-                +
-                ','
-                +
-                str(resp)
-                +
-                ','
-                +
-                str(good_ans)
-                +
-                ','
-                +
-                str(good_answer)
-                +
-                ','
-                +
-                'yes'
-                +
-                ','
-                +
-                str(round(rt, 2))
-                +
-                ','
-                +
-                str(round(time.time() - start, 2))
-                +
-                '\n')
-            silence.draw()
-            win.flip()
-            rnd_time = randint(8, 14)
-            core.wait(rnd_time * 10 ** -3)
-        croix.draw()
-        win.flip()
-        core.wait(1)
-        results = visual.TextStim(
-            win=win,
-            name='results',
-            text="Vous avez obtenu " + str(score) + "/3",
-            font='Arial',
-            units='height',
-            pos=(0, 0),
-            height=0.06,
-            wrapWidth=None,
-            ori=0,
-            color='white',
-            colorSpace='rgb',
-            opacity=1,
-            languageStyle='LTR',
-            depth=0.0)
-        results.draw()
-        win.flip()
-        core.wait(5)
-        tutoriel_end.draw()
-        win.flip()
+        # for i in range(3):
+        #     rnd = randint(0, 3)
+        #     digit = randint(0, 9)
+        #     croix.draw()
+        #     win.flip()
+        #     core.wait(self.target_time)
+        #     digit = visual.TextStim(
+        #         win=win,
+        #         name='digit',
+        #         text=digit,
+        #         font='Arial',
+        #         units='height',
+        #         pos=positions[rnd],
+        #         height=0.06,
+        #         wrapWidth=None,
+        #         ori=0,
+        #         color='white',
+        #         colorSpace='rgb',
+        #         opacity=1,
+        #         languageStyle='LTR',
+        #         depth=0.0)
+        #     digit.draw()
+        #     croix.draw()
+        #     win.flip()
+        #     core.wait(0.017)
+        #     croix.draw()
+        #     core.wait(self.times_before_masking[self.times_before_masking_last_index])
+        #     mask = [visual.TextStim(
+        #         win=win,
+        #         name='digit',
+        #         text="M" if n_letter % 2 == 0 else "E",
+        #         font='Arial',
+        #         units='height',
+        #         pos=position_masks[rnd][n_letter],
+        #         height=0.06,
+        #         wrapWidth=None,
+        #         ori=0,
+        #         color='white',
+        #         colorSpace='rgb',
+        #         opacity=1,
+        #         languageStyle='LTR',
+        #         depth=0.0) for n_letter in range(4)]
+        #     for letter in mask:
+        #         letter.draw()
+        #     croix.draw()
+        #     win.flip()
+        #     core.wait(0.2)
+        #     resp, rt = self.get_response()
+        #     if resp == self.yes_key_code:
+        #         good_answer = True
+        #         score = score + 1
+        #         congrats = visual.TextStim(
+        #             win=win,
+        #             name='congrats',
+        #             text="Bravo ! \n Vous avez " + str(score) + "/" + str(i + 1),
+        #             font='Arial',
+        #             units='height',
+        #             pos=(0, 0),
+        #             height=0.06,
+        #             wrapWidth=None,
+        #             ori=0,
+        #             color='white',
+        #             colorSpace='rgb',
+        #             opacity=1,
+        #             languageStyle='LTR',
+        #             depth=0.0)
+        #         congrats.draw()
+        #         win.flip()
+        #         core.wait(2)
+        #     elif resp != good_ans:
+        #         good_answer = False
+        #         missed = visual.TextStim(
+        #             win=win,
+        #             name='missed',
+        #             text="Dommage... \n Vous avez " + str(score) + "/" + str(i + 1),
+        #             font='Arial',
+        #             units='height',
+        #             pos=(0, 0),
+        #             height=0.06,
+        #             wrapWidth=None,
+        #             ori=0,
+        #             color='white',
+        #             colorSpace='rgb',
+        #             opacity=1,
+        #             languageStyle='LTR',
+        #             depth=0.0)
+        #         missed.draw()
+        #         win.flip()
+        #         core.wait(2)
+        #     else:
+        #         good_answer = None
+        #     dataFile.write(
+        #         str(i)
+        #         +
+        #         ','
+        #         +
+        #         expInfo['participant']
+        #         +
+        #         ','
+        #         +
+        #         str(L[rnd])
+        #         +
+        #         ','
+        #         +
+        #         str(condition)
+        #         +
+        #         ','
+        #         +
+        #         str(resp)
+        #         +
+        #         ','
+        #         +
+        #         str(good_ans)
+        #         +
+        #         ','
+        #         +
+        #         str(good_answer)
+        #         +
+        #         ','
+        #         +
+        #         'yes'
+        #         +
+        #         ','
+        #         +
+        #         str(round(rt, 2))
+        #         +
+        #         ','
+        #         +
+        #         str(round(time.time() - start, 2))
+        #         +
+        #         '\n')
+        #     silence.draw()
+        #     win.flip()
+        #     rnd_time = randint(8, 14)
+        #     core.wait(rnd_time * 10 ** -3)
+        # croix.draw()
+        # win.flip()
+        # core.wait(1)
+        # results = visual.TextStim(
+        #     win=win,
+        #     name='results',
+        #     text="Vous avez obtenu " + str(score) + "/3",
+        #     font='Arial',
+        #     units='height',
+        #     pos=(0, 0),
+        #     height=0.06,
+        #     wrapWidth=None,
+        #     ori=0,
+        #     color='white',
+        #     colorSpace='rgb',
+        #     opacity=1,
+        #     languageStyle='LTR',
+        #     depth=0.0)
+        # results.draw()
+        # win.flip()
+        # core.wait(5)
+        # tutoriel_end.draw()
+        # win.flip()
 
         # Here, the real test starts
         core.wait(3)
         pret_V2.draw()
         win.flip()
-        event.waitKeys(keyList=['a', 'p'], maxWait=10, clearEvents=True)
+        while self.get_response() != self.yes_key_code:
+            pass
         doigts.draw()
         win.flip()
         core.wait(5)
@@ -470,26 +506,19 @@ class Flanker:
         win.flip()
         core.wait(2)
 
-        for i in range(10):
-            rnd = randint(0, 3)
-            if (rnd == 0) or (rnd == 1):
-                good_ans = "a"
-            else:
-                good_ans = "p"
-            if (rnd == 0) or (rnd == 3):
-                condition = "Congruent"
-            else:
-                condition = "Incongruent"
+        for i in range(self.trials):
+            rnd = randint(0,3)
+            digit = randint(0, 9)
             croix.draw()
             win.flip()
-            core.wait(0.5)
-            arrows = visual.TextStim(
+            core.wait(self.target_time)
+            digit = visual.TextStim(
                 win=win,
-                name='arrows',
-                text=L[rnd],
+                name='digit',
+                text=digit,
                 font='Arial',
                 units='height',
-                pos=(0, 0),
+                pos=positions[rnd],
                 height=0.06,
                 wrapWidth=None,
                 ori=0,
@@ -498,9 +527,33 @@ class Flanker:
                 opacity=1,
                 languageStyle='LTR',
                 depth=0.0)
-            arrows.draw()
+            digit.draw()
+            croix.draw()
             win.flip()
-            resp, rt = self.get_response()
+            core.wait(0.017)
+            croix.draw()
+            core.wait(self.times_before_masking[self.times_before_masking_last_index])
+            mask = [visual.TextStim(
+                win=win,
+                name='digit',
+                text="M" if n_letter % 2 == 0 else "E",
+                font='Arial',
+                units='height',
+                pos=position_masks[rnd][n_letter],
+                height=0.06,
+                wrapWidth=None,
+                ori=0,
+                color='white',
+                colorSpace='rgb',
+                opacity=1,
+                languageStyle='LTR',
+                depth=0.0) for n_letter in range(4)]
+            for letter in mask:
+                letter.draw()
+            croix.draw()
+            win.flip()
+            core.wait(0.2)
+            resp = self.get_response()
             if resp == good_ans:
                 score = score + 1
                 good_answer = True
@@ -559,7 +612,8 @@ class Flanker:
         win.flip()
         core.wait(5)
 
-    def quit_experiment(self):
+    @staticmethod
+    def quit_experiment():
         exit()
 
     def get_response(self):
@@ -567,14 +621,11 @@ class Flanker:
         Pressing Q while the function is wait for a response will quit the experiment.
         Returns the pressed key and the reaction time.
         """
-        rt_timer = core.MonotonicClock()
-        resp = event.waitKeys(keyList=['a', 'p'], timeStamped=rt_timer, maxWait=2, clearEvents=True)
-
-        if 'q' in resp[0]:
+        resp = event.waitKeys(keyList=self.keys, clearEvents=True)
+        if resp[0] == "q":
             self.quit_experiment()
-        return resp[0][0], resp[0][1] * 1000  # key and rt in milliseconds
+        return resp[0]
 
 
-start = time.time()
-exp = Flanker(start)
+exp = SubliminalPrimingTask()
 exp.run()

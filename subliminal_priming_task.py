@@ -39,8 +39,8 @@ class SubliminalPrimingTask:
         self.yes_key_code = "o"  # TODO: Temporaire, à modifier quand on passera sur le pad
         self.no_key_code = "n"  # TODO: Pareil
         self.keys = [self.yes_key_code, self.no_key_code, "q"]
-        self.yes_key_name = "bleu"  # TODO: Voir si c'est la bonne couleur
-        self.no_key_name = "vert"  # TODO: Pareil
+        self.yes_key_name = "bleue"  # TODO: Voir si c'est la bonne couleur
+        self.no_key_name = "verte"  # TODO: Pareil
         self.target_time = 0.5  # TODO: Je sais pas combien de temps la croix reste dans l'expérience originale, donc je mets cette variable
         self.times_before_masking = [0.017, 0.033, 0.050, 0.067, 0.083, 0.100, 0.117,
                                      0.133]  # TODO: Je n'ai pas trouvé les valeurs exactes dans l'article de Berkovitch
@@ -53,24 +53,28 @@ class SubliminalPrimingTask:
             screen=0,
             allowStencil=False,
             monitor='testMonitor',
-            color='black',
+            color='white',
             colorSpace='rgb')
 
-    def create_visual_text(self, text, pos=(0, 0)):
+    def create_visual_text(self, text, pos=(0, 0), font_size=0.06):
         return visual.TextStim(
             win=self.win,
             text=text,
             font='Arial',
             units='height',
             pos=pos,
-            height=0.06,
+            height=font_size,
             wrapWidth=None,
             ori=0,
-            color='white',
+            color='black',
             colorSpace='rgb',
             opacity=1,
             languageStyle='LTR',
             depth=0.0)
+
+    def wait(self):
+        while self.get_response() != self.yes_key_code:
+            pass
 
     def run(self):
         positions = [(-0.25, -0.25), (-0.25, 0.25), (0.25, -0.25), (0.25, 0.25)]
@@ -86,10 +90,12 @@ class SubliminalPrimingTask:
 
         # Here, we create all of the different visuals which will be shown through the previously created window
         bienvenue = self.create_visual_text(text="Bienvenue")
+        next = self.create_visual_text(text="Pour passer à l'instruction suivante, appuyez sur la touche "
+                                            f"{self.yes_key_name}", pos=(0, -0.45), font_size=0.04)
         instr = self.create_visual_text(text='Dans ce mini-jeu, un chiffre apparaîtra durant un cours moment à une '
                                              'position aléatoire, puis, après une durée variable, un masque apparaîtra.'
                                              ' Vous devrez nous indiquer si vous avez vu le chiffre, puis indiquer si '
-                                             'il était plus grand ou égal à 5.')
+                                             'il était supérieur ou égal à 5.')
         instr2 = self.create_visual_text(text=f'Pour répondre oui, il faudra appuyer sur la touche '
                                               f'{self.yes_key_name}, et pour répondre non, il '
                                               f'faudra appuyer sur la touche {self.no_key_name}.')
@@ -100,7 +106,6 @@ class SubliminalPrimingTask:
         croix = self.create_visual_text(text="+")
         silence = self.create_visual_text(text="")
         tutoriel_end = self.create_visual_text(text="Le tutoriel est désormais terminé")
-        pret = self.create_visual_text(text=f'Appuyez sur la touche {self.yes_key_name} pour commencer le mini-jeu')
         pressure = self.create_visual_text(text="Le mini-jeu va maintenant commencer, ne vous inquiétez pas, si vous "
                                                 "vous trompez ou si vous n'êtes pas sûr(e) ce n'est pas grave")
         end = self.create_visual_text(text='Le mini-jeu est désormais terminé')
@@ -111,11 +116,13 @@ class SubliminalPrimingTask:
         self.win.flip()
         core.wait(2)
         instr.draw()
+        next.draw()
         self.win.flip()
-        core.wait(5)
+        self.wait()
         instr2.draw()
+        next.draw()
         self.win.flip()
-        core.wait(5)
+        self.wait()
         # TODO: À décommenter si on met un entraînement
         # exemple.draw()
         # self.win.flip()
@@ -219,11 +226,6 @@ class SubliminalPrimingTask:
         # self.win.flip()
 
         # Here, the real test starts
-        core.wait(3)
-        pret.draw()
-        self.win.flip()
-        while self.get_response() != self.yes_key_code:
-            pass
         pressure.draw()
         self.win.flip()
         core.wait(5)

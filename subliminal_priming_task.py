@@ -30,7 +30,7 @@ if not os.path.isdir("csv"):
     os.mkdir("csv")
 dataFile = open(f"{_thisDir}/csv/{fileName}.csv", 'w')
 # dataFile.write('no_trial, id_candidate, digit, SOA, seen, gte_5, correct, practice, reaction_time, time_stamp\n')  # TODO : À remettre si on remet l'entraînement
-dataFile.write('no_trial, id_candidate, digit, SOA, seen, gte_5, correct, time_stamp, start_SOA\n')
+dataFile.write('no_trial, id_candidate, digit, SOA, seen, gte_5, correct, time_from_start, start_SOA\n')
 
 
 class SubliminalPrimingTask:
@@ -55,6 +55,7 @@ class SubliminalPrimingTask:
             monitor='testMonitor',
             color='white',
             colorSpace='rgb')
+        self.start = None
 
     def create_visual_text(self, text, pos=(0, 0), font_size=0.06):
         return visual.TextStim(
@@ -87,6 +88,7 @@ class SubliminalPrimingTask:
         self.win.winHandle.set_fullscreen(True)
         self.win.flip()
         self.win.mouseVisible = False
+        self.start = time.time()
 
         # Here, we create all of the different visuals which will be shown through the previously created window
         bienvenue = self.create_visual_text(text="Bienvenue")
@@ -123,7 +125,7 @@ class SubliminalPrimingTask:
         next.draw()
         self.win.flip()
         self.wait()
-        # TODO: À décommenter si on met un entraînement
+        # TODO: À décommenter si on met un entraînement (et à remodifier comme le reste du code aussi)
         # exemple.draw()
         # self.win.flip()
         # core.wait(3)
@@ -270,7 +272,7 @@ class SubliminalPrimingTask:
                 else:
                     good_answer = False
             dataFile.write(f"{i}, {expInfo['participant']}, {digit}, {self.times_before_masking[soa]}, "
-                           f"{seen}, {digit_gte_5}, {good_answer}, {time.time()}, "
+                           f"{seen}, {digit_gte_5}, {good_answer}, {time.time() - self.start}, "
                            f"{self.times_before_masking[self.starting_SOA_index]}\n")
             if good_answer and soa != 0:
                 soa -= 1

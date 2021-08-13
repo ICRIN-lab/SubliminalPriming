@@ -5,6 +5,7 @@ from task_template import TaskTemplate
 from psychopy import core
 
 
+# noinspection PyAttributeOutsideInit,SpellCheckingInspection
 class SubliminalPrimingTask(TaskTemplate):
     bg = "white"
     text_color = "black"
@@ -25,39 +26,41 @@ class SubliminalPrimingTask(TaskTemplate):
     csv_headers = ['no_trial', 'id_candidate', 'digit', 'SOA', 'seen', 'gte_5', 'correct', 'time_from_start',
                    'start_SOA'
                    ]
-    times_before_masking = [0.017, 0.033, 0.05, 0.067, 0.083, 0.1, 0.117, 0.133]  # TODO: À voir si ce sont les bonnes valeurs
-    target_time = 0.5
 
-    def task(self, no_trial, exp_start_timestamp, trial_start_timestamp):
-        if no_trial == 0:
-            if randint(0, 1):
-                self.soa = self.starting_SOA_index = len(self.times_before_masking) - 1
-            else:
-                self.soa = self.starting_SOA_index = 0
-        positions = [(-0.25, -0.25), (-0.25, 0.25), (0.25, -0.25), (0.25, 0.25)]
-        position_masks = [
+    def init(self):
+        self.times_before_masking = [0.017, 0.033, 0.05, 0.067, 0.083, 0.1, 0.117,
+                                     0.133]  # TODO: À voir si ce sont les bonnes valeurs
+        self.target_time = 0.5  # TODO: Pareil
+        if randint(0, 1):
+            self.soa = self.starting_SOA_index = len(self.times_before_masking) - 1
+        else:
+            self.soa = self.starting_SOA_index = 0
+        self.croix = self.create_visual_text("+")
+        self.positions = [(-0.25, -0.25), (-0.25, 0.25), (0.25, -0.25), (0.25, 0.25)]
+        self.position_masks = [
             [(-0.30, -0.25), (-0.25, -0.20), (-0.20, -0.25), (-0.25, -0.30)],
             [(-0.30, 0.25), (-0.25, 0.20), (-0.20, 0.25), (-0.25, 0.30)],
             [(0.30, -0.25), (0.25, -0.20), (0.20, -0.25), (0.25, -0.30)],
             [(0.30, 0.25), (0.25, 0.20), (0.20, 0.25), (0.25, 0.30)],
         ]
-        croix = self.create_visual_text("+")
+
+    def task(self, no_trial, exp_start_timestamp, trial_start_timestamp):
         rnd = randint(0, 3)
         digit = randint(0, 9)
         digit_gte_5 = digit >= 5
-        croix.draw()
+        self.croix.draw()
         self.win.flip()
         core.wait(self.target_time)
-        self.create_visual_text(text=digit, pos=positions[rnd]).draw()
-        croix.draw()
+        self.create_visual_text(text=digit, pos=self.positions[rnd]).draw()
+        self.croix.draw()
         self.win.flip()
         core.wait(0.017)
-        croix.draw()
+        self.croix.draw()
         self.win.flip()
         core.wait(self.times_before_masking[self.soa])
-        [self.create_visual_text(text="M" if n_letter % 2 == 0 else "E", pos=position_masks[rnd][n_letter]).draw()
+        [self.create_visual_text(text="M" if n_letter % 2 == 0 else "E", pos=self.position_masks[rnd][n_letter]).draw()
          for n_letter in range(4)]
-        croix.draw()
+        self.croix.draw()
         self.win.flip()
         core.wait(0.2)
         self.create_visual_text(text="Avez-vous vu le chiffre ?").draw()

@@ -5,4 +5,4 @@ Subliminal priming occurs when an individual is exposed to stimuli below the thr
 
 In cognitive psychology, visual backward masking involves presenting one visual stimulus (a "mask" or "masking stimulus") immediately after a brief (usually 30 ms) "target" visual stimulus resulting in a failure to consciously perceive the first stimulus. It is widely used in psychophysiological studies on fear and phobias that investigate the preattentive nonconscious reactions to fear-relevant stimuli.
 
-First defined in <a href="https://www.amazon.fr/Visual-Masking-Integrative-Bruno-Breitmeyer/dp/0198521057"> Bretmeyer's book </a> available on Amazon.
+First defined in <a href="https://www.amazon.fr/Visual-Masking-Integrative-Bruno-Breitmeyer/dp/0198521057"> Bretmeyer's book </a> (1984) available on Amazon.
